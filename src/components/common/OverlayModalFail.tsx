@@ -38,7 +38,7 @@ export const OverlayModalFail: React.FC<CloseableOverlayProps> = ({ handleCloseO
           justifyContent: 'center',
         }}
       >
-        <ErrorOutlineIcon sx={{ fontSize: '80px', color: '#E7424C' }} />
+        <ErrorOutlineIcon sx={{ fontSize: '80px', color: theme.palette.error.main }} />
         <Typography variant="h2" sx={{ margin: '12px' }}>
           {`Transaction submission failed!`}
         </Typography>

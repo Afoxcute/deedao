@@ -3,15 +3,15 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import LogoutIcon from '@mui/icons-material/Logout';
 import WalletIcon from '@mui/icons-material/Wallet';
 import {
-  Alert,
-  Button,
-  ListItemIcon,
-  ListItemText,
-  Menu,
-  MenuItem,
-  Snackbar,
-  Typography,
-  useTheme,
+    Alert,
+    Button,
+    ListItemIcon,
+    ListItemText,
+    Menu,
+    MenuItem,
+    Snackbar,
+    Typography,
+    useTheme,
 } from '@mui/material';
 import copy from 'copy-to-clipboard';
 import React from 'react';
@@ -127,11 +127,11 @@ export const WalletMenu = () => {
             handleClose();
             handleDisconnectWallet();
           }}
-          sx={{ color: '#E7424C' }}
+          sx={{ color: theme.palette.error.main }}
         >
           <ListItemText>Disconnect</ListItemText>
           <ListItemIcon>
-            <LogoutIcon sx={{ color: '#E7424C' }} />
+            <LogoutIcon sx={{ color: theme.palette.error.main }} />
           </ListItemIcon>
         </MenuItem>
       </Menu>

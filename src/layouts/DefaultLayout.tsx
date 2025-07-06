@@ -1,5 +1,6 @@
 import MenuIcon from '@mui/icons-material/Menu';
 import { AppBar, Box, IconButton, NoSsr, Toolbar } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Networks } from '@stellar/stellar-sdk';
 import { useRouter } from 'next/router';
 import { ReactNode, useEffect } from 'react';
@@ -8,7 +9,7 @@ import { OverlayModal } from '../components/common/OverlayModal';
 import { OverlayModalTOS } from '../components/common/OverlayModalTOS';
 import { Row } from '../components/common/Row';
 import { WalletWarning } from '../components/common/WalletWarning';
-// import { SideBar } from '../components/nav/SideBar';
+import { SideBar } from '../components/nav/SideBar';
 import { useSettings, ViewType } from '../contexts';
 import { useWallet } from '../contexts/wallet';
 import { useBackstop, useFeeStats, usePoolMeta } from '../hooks/api';
@@ -25,6 +26,8 @@ export default function DefaultLayout({ children }: { children: ReactNode }) {
   const { data: poolMeta } = usePoolMeta(safePoolId as string, safePoolId !== undefined);
   const { data: backstop } = useBackstop(poolMeta?.version);
   const { data: feeStats } = useFeeStats();
+
+  const theme = useTheme();
 
   useEffect(() => {
     if (poolMeta !== undefined) {
@@ -84,13 +87,13 @@ export default function DefaultLayout({ children }: { children: ReactNode }) {
               onClick={() => setMobileOpen(!mobileOpen)}
               sx={{ mr: 2, display: { md: 'none' } }}
             >
-              <MenuIcon sx={{ color: '#FFF' }} />
+              <MenuIcon sx={{ color: theme.palette.text.primary }} />
             </IconButton>
             <Box sx={{ flexGrow: 1 }} />
           </Toolbar>
         </AppBar>
       </NoSsr>
-      {/* <SideBar /> */}
+      <SideBar />
       <Box sx={{ height: '30px' }} />
       <Box
         component="main"

@@ -169,7 +169,7 @@ const Asset: NextPage = () => {
             text={toPercentage(reserve.getUtilizationFloat())}
             sx={{
               flex: 1,
-              border: '1px solid #2775C9',
+              border: '1px solid ' + theme.palette.primary.main,
             }}
           />
           <StackedTextBox

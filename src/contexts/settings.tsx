@@ -21,6 +21,7 @@ export interface TrackedPool {
   id: string;
   name: string;
   version: Version;
+  customAssetIds?: string[];
 }
 
 export interface NetworkUrls {
@@ -41,6 +42,8 @@ export interface ISettingsContext {
   trackedPools: TrackedPool[];
   trackPool: (poolMeta: PoolMeta) => void;
   untrackPool: (id: string) => void;
+  addCustomAssetToPool: (poolId: string, assetId: string) => void;
+  removeCustomAssetFromPool: (poolId: string, assetId: string) => void;
   showLend: boolean;
   setShowLend: (showLend: boolean) => void;
   showJoinPool: boolean;
@@ -151,9 +154,35 @@ export const SettingsProvider = ({ children = null as any }) => {
       setTrackedPoolsString(
         JSON.stringify([
           ...trackedPools,
-          { id: poolMeta.id, name: poolMeta.name, version: poolMeta.version },
+          { id: poolMeta.id, name: poolMeta.name, version: poolMeta.version, customAssetIds: [] },
         ])
       );
+    }
+  }
+
+  function addCustomAssetToPool(poolId: string, assetId: string) {
+    const poolIndex = trackedPools.findIndex((pool) => pool.id === poolId);
+    if (poolIndex !== -1 && trackedPools[poolIndex].version === 'V2') {
+      const updatedPools = [...trackedPools];
+      if (!updatedPools[poolIndex].customAssetIds) {
+        updatedPools[poolIndex].customAssetIds = [];
+      }
+      if (!updatedPools[poolIndex].customAssetIds?.includes(assetId)) {
+        updatedPools[poolIndex].customAssetIds?.push(assetId);
+        setTrackedPoolsString(JSON.stringify(updatedPools));
+      }
+    }
+  }
+
+  function removeCustomAssetFromPool(poolId: string, assetId: string) {
+    const poolIndex = trackedPools.findIndex((pool) => pool.id === poolId);
+    if (poolIndex !== -1 && trackedPools[poolIndex].customAssetIds) {
+      const updatedPools = [...trackedPools];
+      const assetIndex = updatedPools[poolIndex].customAssetIds?.indexOf(assetId);
+      if (assetIndex !== undefined && assetIndex !== -1) {
+        updatedPools[poolIndex].customAssetIds?.splice(assetIndex, 1);
+        setTrackedPoolsString(JSON.stringify(updatedPools));
+      }
     }
   }
 
@@ -167,7 +196,7 @@ export const SettingsProvider = ({ children = null as any }) => {
 
   function setLastPool(poolMeta: PoolMeta) {
     setLastPoolString(
-      JSON.stringify({ id: poolMeta.id, name: poolMeta.name, version: poolMeta.version })
+      JSON.stringify({ id: poolMeta.id, name: poolMeta.name, version: poolMeta.version, customAssetIds: [] })
     );
   }
 
@@ -185,6 +214,8 @@ export const SettingsProvider = ({ children = null as any }) => {
         trackedPools,
         trackPool,
         untrackPool,
+        addCustomAssetToPool,
+        removeCustomAssetFromPool,
         showLend,
         setShowLend,
         showJoinPool,

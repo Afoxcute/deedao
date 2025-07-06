@@ -1,5 +1,5 @@
-import RemoveCircleOutlineIcon from '@mui/icons-material/RemoveCircleOutline';
-import { Box, Input, Typography } from '@mui/material';
+import RemoveCircleOutline from '@mui/icons-material/RemoveCircleOutline';
+import { Input, Typography } from '@mui/material';
 import { Horizon, rpc } from '@stellar/stellar-sdk';
 import { useEffect, useState } from 'react';
 import packageJSON from '../../package.json';
@@ -14,8 +14,16 @@ import theme from '../theme';
 
 export default function SettingsPage() {
   const { getNetworkDetails, walletId } = useWallet();
-  const { network, setNetwork, setDefaultNetwork, trackPool, untrackPool, trackedPools } =
-    useSettings();
+  const {
+    network,
+    setNetwork,
+    setDefaultNetwork,
+    trackPool,
+    untrackPool,
+    trackedPools,
+    addCustomAssetToPool,
+    removeCustomAssetFromPool
+  } = useSettings();
 
   const [newNetworkRPCUrl, setNewNetworkRPCUrl] = useState<string>('');
   const [newHorizonUrl, setNewHorizonUrl] = useState<string>('');
@@ -28,6 +36,11 @@ export default function SettingsPage() {
   const [poolToAdd, setPoolToAdd] = useState<string>('');
   const [poolIdError, setPoolIdError] = useState('');
   const { data: poolMeta } = usePoolMeta(poolToAdd, poolToAdd.length > 0);
+
+  const [customAssetPoolId, setCustomAssetPoolId] = useState<string>('');
+  const [customAssetId, setCustomAssetId] = useState<string>('');
+  const [customAssetError, setCustomAssetError] = useState<string>('');
+  const { data: customAssetPoolMeta } = usePoolMeta(customAssetPoolId, customAssetPoolId.length > 0);
 
   function fetchFromWallet() {
     getNetworkDetails().then((networkDetails) => {
@@ -64,6 +77,22 @@ export default function SettingsPage() {
 
   function handleChangePoolToAdd(poolId: string) {
     setPoolToAdd(poolId);
+  }
+
+  function handleAddCustomAsset() {
+    if (!customAssetPoolMeta || customAssetPoolMeta.version !== 'V2') {
+      setCustomAssetError('Invalid Pool ID: Must be a V2 pool.');
+      return;
+    }
+    if (!/^[A-Z0-9]{1,12}:[A-Z0-9]{56}$/.test(customAssetId) && !/^[A-Z0-9]{56}$/.test(customAssetId)) {
+      setCustomAssetError('Invalid Asset ID: Must be a valid Stellar asset code (e.g., USD) or contract ID.');
+      return;
+    }
+
+    addCustomAssetToPool(customAssetPoolId, customAssetId);
+    setCustomAssetPoolId('');
+    setCustomAssetId('');
+    setCustomAssetError('');
   }
 
   const validatePoolId = (poolId: string) => {
@@ -248,55 +277,28 @@ export default function SettingsPage() {
                 Fetch from Wallet
               </OpaqueButton>
             )}
-            {!canUpdateNetwork && updateNetworkMessage !== '' && (
-              <Typography variant="body2" color="error">
+            {canUpdateNetwork && (
+              <OpaqueButton
+                sx={{ width: '20rem', margin: 'auto' }}
+                palette={theme.palette.primary}
+                onClick={handleUpdateNetworkClick}
+              >
+                Update Network
+              </OpaqueButton>
+            )}
+            {loadingNewNetwork && (
+              <Typography sx={{ margin: 'auto', color: theme.palette.text.secondary }}>
+                Loading...
+              </Typography>
+            )}
+            {updateNetworkMessage && (
+              <Typography sx={{ margin: 'auto', color: theme.palette.warning.main }}>
                 {updateNetworkMessage}
               </Typography>
             )}
-            <OpaqueButton
-              sx={{ width: '20rem', margin: 'auto' }}
-              palette={theme.palette.primary}
-              onClick={handleUpdateNetworkClick}
-              disabled={!canUpdateNetwork || loadingNewNetwork}
-            >
-              {loadingNewNetwork ? 'Loading...' : 'Update Network'}
-            </OpaqueButton>
           </Row>
         </Row>
-        <Row sx={{ margin: '12px', padding: '12px' }}>
-          <Typography variant="h1">Tracked Pools</Typography>
-        </Row>
         <Divider />
-        {trackedPools.length > 0 &&
-          trackedPools.map((pool) => (
-            <Box
-              key={pool.id}
-              sx={{
-                width: '100%',
-                display: 'flex',
-                marginBottom: '6px',
-                paddingBottom: '6px',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                borderRadius: '5px',
-              }}
-            >
-              <TrackedPool
-                key={pool.id}
-                name={pool.name}
-                id={pool.id}
-                version={pool.version}
-                sx={{ flex: 1 }}
-              />
-              <OpaqueButton
-                onClick={() => untrackPool(pool.id)}
-                palette={theme.palette.error}
-                sx={{ display: 'flex', alignSelf: 'center' }}
-              >
-                <RemoveCircleOutlineIcon />
-              </OpaqueButton>
-            </Box>
-          ))}
         <Row
           sx={{
             flexDirection: 'column',
@@ -306,30 +308,111 @@ export default function SettingsPage() {
             padding: '12px',
           }}
         >
-          <Typography variant="h2">Add Tracked Pool</Typography>
-
-          <Row sx={{ flexDirection: 'column', display: 'flex', gap: '1rem' }}>
+          <Typography variant="h2">Track Pool</Typography>
+          <Input
+            placeholder="Input Pool ID"
+            type="text"
+            value={poolToAdd}
+            onChange={(e) => handleChangePoolToAdd(e.target.value)}
+            fullWidth
+          />
+          <OpaqueButton
+            sx={{ width: '20rem', margin: 'auto' }}
+            palette={poolIdError ? theme.palette.warning : theme.palette.primary}
+            onClick={() => handleAddTrackedPool(poolToAdd)}
+            disabled={!!poolIdError || poolToAdd.length === 0}
+          >
+            Track Pool
+          </OpaqueButton>
+          {poolIdError && (
+            <Typography sx={{ margin: 'auto', color: theme.palette.warning.main }}>
+              {poolIdError}
+            </Typography>
+          )}
+        </Row>
+        <Divider />
+        <Row sx={{ margin: '12px', padding: '12px' }}>
+          <Typography variant="h1">Custom Assets for V2 Pools</Typography>
+        </Row>
+        <Divider />
+        <Row
+          sx={{
+            flexDirection: 'column',
+            gap: '1rem',
+            alignItems: 'start',
+            margin: '12px',
+            padding: '12px',
+          }}
+        >
+          <Typography variant="h2">Add Custom Asset to V2 Pool</Typography>
+          <Row sx={{ flexDirection: 'column', display: 'flex', gap: '1rem', width: '100%' }}>
             <Input
-              placeholder="Pool Address (C....)"
+              placeholder="V2 Pool Contract ID"
               type="text"
-              value={poolToAdd}
-              onChange={(e) => handleChangePoolToAdd(e.target.value)}
-              error={!!poolIdError}
+              value={customAssetPoolId}
+              onChange={(e) => setCustomAssetPoolId(e.target.value)}
+              error={!!customAssetError}
+              sx={{ width: '100%' }}
             />
-            {poolIdError && (
-              <Typography variant="body2" color="error">
-                {poolIdError}
+            <Input
+              placeholder="Asset ID (Contract ID or Asset Code:Issuer)"
+              type="text"
+              value={customAssetId}
+              onChange={(e) => setCustomAssetId(e.target.value)}
+              error={!!customAssetError}
+              sx={{ width: '100%' }}
+            />
+            {customAssetError && (
+              <Typography variant="body1" sx={{ color: theme.palette.error.main }}>
+                {customAssetError}
               </Typography>
             )}
             <OpaqueButton
               sx={{ width: '20rem', margin: 'auto' }}
+              onClick={handleAddCustomAsset}
+              disabled={!customAssetPoolId || !customAssetId}
               palette={theme.palette.primary}
-              onClick={() => handleAddTrackedPool(poolToAdd)}
-              disabled={!!poolIdError}
             >
-              Add
+              Add Custom Asset
             </OpaqueButton>
           </Row>
+        </Row>
+        <Divider />
+        <Row sx={{ margin: '12px', padding: '12px' }}>
+          <Typography variant="h1">Tracked Pools</Typography>
+        </Row>
+        <Row
+          sx={{
+            flexDirection: 'column',
+            gap: '1rem',
+            margin: '12px',
+            padding: '12px',
+          }}
+        >
+          {trackedPools.map((pool) => (
+            <Row key={pool.id} sx={{ flexDirection: 'column', gap: '0.5rem' }}>
+              <TrackedPool pool={pool} onRemove={() => untrackPool(pool.id)} />
+              {pool.version === 'V2' && pool.customAssetIds && pool.customAssetIds.length > 0 && (
+                <Row sx={{ flexDirection: 'column', paddingLeft: '1rem' }}>
+                  <Typography variant="h3">Custom Assets:</Typography>
+                  {pool.customAssetIds.map((assetId) => (
+                    <Row key={assetId} sx={{ justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                      <Typography variant="body1" sx={{ color: theme.palette.text.secondary }}>
+                        {assetId}
+                      </Typography>
+                      <OpaqueButton
+                        palette={theme.palette.warning}
+                        onClick={() => removeCustomAssetFromPool(pool.id, assetId)}
+                        sx={{ minWidth: 'auto', padding: '4px' }}
+                      >
+                        <RemoveCircleOutline fontSize="small" />
+                      </OpaqueButton>
+                    </Row>
+                  ))}
+                </Row>
+              )}
+            </Row>
+          ))}
         </Row>
       </>
     </>
