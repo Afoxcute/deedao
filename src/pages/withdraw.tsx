@@ -193,7 +193,7 @@ const Withdraw: NextPage = () => {
         </Section>
         <Section width={SectionSize.THIRD}>
           <StackedText
-            title="Total Supplied"
+            title="Total Staked"
             text={toBalance(reserve?.totalSupplyFloat())}
             sx={{ width: '100%', padding: '6px' }}
           ></StackedText>

@@ -3,16 +3,15 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Box, Typography, useTheme } from '@mui/material';
 import { ViewType, useSettings } from '../../contexts';
 import {
-  useBackstop,
-  useHorizonAccount,
-  usePool,
-  usePoolMeta,
-  usePoolOracle,
-  useTokenBalance,
-  useTokenMetadata,
+    useBackstop,
+    useHorizonAccount,
+    usePool,
+    usePoolMeta,
+    usePoolOracle,
+    useTokenBalance,
+    useTokenMetadata,
 } from '../../hooks/api';
 import * as formatter from '../../utils/formatter';
-import { estimateEmissionsApr } from '../../utils/math';
 import { CustomButton } from '../common/CustomButton';
 import { LinkBox } from '../common/LinkBox';
 import { PoolComponentProps } from '../common/PoolComponentProps';
@@ -20,11 +19,11 @@ import { RateDisplay } from '../common/RateDisplay';
 import { SectionBase } from '../common/SectionBase';
 import { TokenHeader } from '../common/TokenHeader';
 
-export interface LendMarketCardProps extends PoolComponentProps {
+export interface StakingMarketCardProps extends PoolComponentProps {
   reserve: Reserve;
 }
 
-export const LendMarketCard: React.FC<LendMarketCardProps> = ({
+export const StakingMarketCard: React.FC<StakingMarketCardProps> = ({
   poolId,
   reserve,
   sx,
@@ -47,17 +46,10 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
 
   const symbol = tokenMetadata?.symbol ?? formatter.toCompactAddress(reserve.assetId);
   const oraclePrice = poolOracle?.getPriceFloat(reserve.assetId);
-  const emissionsPerAsset =
-    reserve && reserve.supplyEmissions !== undefined
-      ? reserve.supplyEmissions.emissionsPerYearPerToken(
-          reserve.totalSupply(),
-          reserve.config.decimals
-        )
-      : 0;
-  const emissionApr =
-    backstop && emissionsPerAsset && emissionsPerAsset > 0 && oraclePrice
-      ? estimateEmissionsApr(emissionsPerAsset, backstop.backstopToken, oraclePrice)
-      : undefined;
+  
+  // TODO: Replace with actual staking APR calculation
+  const stakingApr = 0.12; // Example 12% APR
+  const totalStaked = reserve.totalSupplyFloat(); // Using supply as example, replace with actual staking total
 
   const tableNum = viewType === ViewType.REGULAR ? 5 : 3;
   const tableWidth = `${(100 / tableNum).toFixed(2)}%`;
@@ -81,7 +73,7 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
           sx={{
             width: '100%',
             '&:hover': {
-              color: theme.palette.lend.main,
+              color: theme.palette.primary.main,
             },
           }}
         >
@@ -110,9 +102,9 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
           >
             <RateDisplay
               assetSymbol={symbol}
-              assetRate={reserve.estSupplyApy}
+              assetRate={stakingApr}
               emissionSymbol="BLND"
-              emissionApr={emissionApr}
+              emissionApr={undefined} // TODO: Replace with actual emissions APR
               rateType={'earned'}
               direction="vertical"
             />
@@ -128,7 +120,7 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
               }}
             >
               <Typography variant="body1">
-                {formatter.toPercentage(reserve.getCollateralFactor())}
+                {formatter.toBalance(totalStaked)}
               </Typography>
             </Box>
           )}
@@ -146,4 +138,4 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
       </LinkBox>
     </SectionBase>
   );
-};
+}; 

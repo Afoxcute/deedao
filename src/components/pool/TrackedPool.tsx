@@ -10,9 +10,9 @@ import { PoolIcon } from './PoolIcon';
 
 export interface TrackedPoolProps extends BoxProps {
   pool: {
-    name: string;
-    id: string;
-    version: Version;
+  name: string;
+  id: string;
+  version: Version;
     customAssetIds?: string[];
   };
   onRemove: () => void;

@@ -24,10 +24,10 @@ export function LendBanner({ totalSupplied }: LendBannerProps) {
           color={theme.palette.text.primary}
         >
           <Circle fontSize="inherit" sx={{ width: '8px', color: theme.palette.lend.main }} />
-          Your supplied positions
+          Your staked positions
         </Typography>
         <Typography sx={{ display: 'flex' }} variant="body2" color={theme.palette.lend.main}>
-          Total supplied {`$${toBalance(totalSupplied ?? 0)}`}
+          Total staked {`$${toBalance(totalSupplied ?? 0)}`}
         </Typography>
       </Box>
     </Banner>

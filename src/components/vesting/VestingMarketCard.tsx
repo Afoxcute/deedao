@@ -3,28 +3,23 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 import { Box, Typography, useTheme } from '@mui/material';
 import { ViewType, useSettings } from '../../contexts';
 import {
-  useBackstop,
-  useHorizonAccount,
-  usePool,
-  usePoolMeta,
-  usePoolOracle,
-  useTokenBalance,
-  useTokenMetadata,
+    usePool,
+    usePoolMeta,
+    usePoolOracle,
+    useTokenMetadata
 } from '../../hooks/api';
 import * as formatter from '../../utils/formatter';
-import { estimateEmissionsApr } from '../../utils/math';
 import { CustomButton } from '../common/CustomButton';
 import { LinkBox } from '../common/LinkBox';
 import { PoolComponentProps } from '../common/PoolComponentProps';
-import { RateDisplay } from '../common/RateDisplay';
 import { SectionBase } from '../common/SectionBase';
 import { TokenHeader } from '../common/TokenHeader';
 
-export interface LendMarketCardProps extends PoolComponentProps {
+export interface VestingMarketCardProps extends PoolComponentProps {
   reserve: Reserve;
 }
 
-export const LendMarketCard: React.FC<LendMarketCardProps> = ({
+export const VestingMarketCard: React.FC<VestingMarketCardProps> = ({
   poolId,
   reserve,
   sx,
@@ -34,30 +29,16 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
   const { viewType } = useSettings();
 
   const { data: poolMeta } = usePoolMeta(poolId);
-  const { data: userAccount } = useHorizonAccount();
   const { data: tokenMetadata } = useTokenMetadata(reserve.assetId);
-  const { data: userTokenBalance } = useTokenBalance(
-    reserve.assetId,
-    tokenMetadata?.asset,
-    userAccount
-  );
-  const { data: backstop } = useBackstop(poolMeta?.version);
   const { data: pool } = usePool(poolMeta);
   const { data: poolOracle } = usePoolOracle(pool);
 
   const symbol = tokenMetadata?.symbol ?? formatter.toCompactAddress(reserve.assetId);
-  const oraclePrice = poolOracle?.getPriceFloat(reserve.assetId);
-  const emissionsPerAsset =
-    reserve && reserve.supplyEmissions !== undefined
-      ? reserve.supplyEmissions.emissionsPerYearPerToken(
-          reserve.totalSupply(),
-          reserve.config.decimals
-        )
-      : 0;
-  const emissionApr =
-    backstop && emissionsPerAsset && emissionsPerAsset > 0 && oraclePrice
-      ? estimateEmissionsApr(emissionsPerAsset, backstop.backstopToken, oraclePrice)
-      : undefined;
+  
+  // TODO: Replace with actual vesting data
+  const totalVested = '1000'; // Example amount
+  const claimableAmount = '250'; // Example amount
+  const vestingEnd = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // Example: 30 days from now
 
   const tableNum = viewType === ViewType.REGULAR ? 5 : 3;
   const tableWidth = `${(100 / tableNum).toFixed(2)}%`;
@@ -75,13 +56,13 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
     >
       <LinkBox
         sx={{ width: '100%' }}
-        to={{ pathname: '/stake', query: { poolId: poolId, assetId: reserve.assetId } }}
+        to={{ pathname: '/vesting/details', query: { poolId: poolId, assetId: reserve.assetId } }}
       >
         <CustomButton
           sx={{
             width: '100%',
             '&:hover': {
-              color: theme.palette.lend.main,
+              color: theme.palette.success.main,
             },
           }}
         >
@@ -95,7 +76,7 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
             }}
           >
             <Typography variant="body1">
-              {formatter.toBalance(userTokenBalance, reserve.config.decimals)}
+              {totalVested} {symbol}
             </Typography>
           </Box>
 
@@ -103,19 +84,13 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
             sx={{
               width: tableWidth,
               display: 'flex',
-              flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
             }}
           >
-            <RateDisplay
-              assetSymbol={symbol}
-              assetRate={reserve.estSupplyApy}
-              emissionSymbol="BLND"
-              emissionApr={emissionApr}
-              rateType={'earned'}
-              direction="vertical"
-            />
+            <Typography variant="body1" sx={{ color: theme.palette.success.main }}>
+              {claimableAmount} {symbol}
+            </Typography>
           </Box>
 
           {viewType !== ViewType.MOBILE && (
@@ -128,7 +103,7 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
               }}
             >
               <Typography variant="body1">
-                {formatter.toPercentage(reserve.getCollateralFactor())}
+                {vestingEnd.toLocaleDateString()}
               </Typography>
             </Box>
           )}
@@ -146,4 +121,4 @@ export const LendMarketCard: React.FC<LendMarketCardProps> = ({
       </LinkBox>
     </SectionBase>
   );
-};
+}; 

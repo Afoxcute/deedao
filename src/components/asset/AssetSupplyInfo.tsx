@@ -112,7 +112,7 @@ export const AssetSupplyInfo: React.FC<ReserveComponentProps> = ({ poolId, asset
                   alignItems: 'center',
                 }}
               >
-                <Typography sx={{ padding: '6px' }}>Total Supplied</Typography>
+                <Typography sx={{ padding: '6px' }}>Total Staked</Typography>
                 {atSupplyLimit && <SupplyCapWarning symbol={tokenSymbol} />}
               </Box>
               <Typography sx={{ padding: '6px', color: theme.palette.lend.main }}>
@@ -140,7 +140,7 @@ export const AssetSupplyInfo: React.FC<ReserveComponentProps> = ({ poolId, asset
           </Row>
           <LinkBox
             sx={{ width: '100%', height: '100%' }}
-            to={{ pathname: '/supply', query: { poolId: poolId, assetId: reserve.assetId } }}
+            to={{ pathname: '/stake', query: { poolId: poolId, assetId: reserve.assetId } }}
           >
             <Row>
               <OpaqueButton
@@ -155,7 +155,7 @@ export const AssetSupplyInfo: React.FC<ReserveComponentProps> = ({ poolId, asset
                   padding: '12px',
                 }}
               >
-                Supply
+                Stake
                 <ArrowForwardIcon fontSize="inherit" />
               </OpaqueButton>
             </Row>

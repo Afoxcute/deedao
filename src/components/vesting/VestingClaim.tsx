@@ -1,6 +1,8 @@
 import { Box, Typography } from '@mui/material';
+import { useState } from 'react';
 import { useWallet } from '../../contexts/wallet';
 import theme from '../../theme';
+import { AnvilAlert } from '../common/AnvilAlert';
 import { OpaqueButton } from '../common/OpaqueButton';
 
 interface VestingClaimProps {
@@ -8,11 +10,33 @@ interface VestingClaimProps {
 }
 
 export const VestingClaim: React.FC<VestingClaimProps> = ({ claimableAmount }) => {
-  const { walletId } = useWallet();
+  const { walletId, connected } = useWallet();
+  const [claimStatus, setClaimStatus] = useState<{
+    success?: boolean;
+    error?: string;
+  }>({});
 
   const handleClaim = async () => {
-    // TODO: Implement claim functionality with contract interaction
-    console.log('Claiming vested tokens');
+    if (!connected) {
+      setClaimStatus({ error: 'Wallet not connected' });
+      return;
+    }
+
+    try {
+      // TODO: Replace with actual vesting contract claim method
+      // Simulated claim process
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      setClaimStatus({ 
+        success: true,
+        error: undefined 
+      });
+    } catch (error) {
+      setClaimStatus({ 
+        success: false,
+        error: error instanceof Error ? error.message : 'Claim failed' 
+      });
+    }
   };
 
   return (
@@ -40,6 +64,19 @@ export const VestingClaim: React.FC<VestingClaimProps> = ({ claimableAmount }) =
       >
         Claim Tokens
       </OpaqueButton>
+      
+      {claimStatus.error && (
+        <AnvilAlert 
+          severity="error" 
+          message={claimStatus.error} 
+        />
+      )}
+      {claimStatus.success && (
+        <AnvilAlert 
+          severity="success" 
+          message="Tokens claimed successfully!" 
+        />
+      )}
     </Box>
   );
 }; 

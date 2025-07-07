@@ -1,7 +1,7 @@
 import { Network, Version } from '@blend-capital/blend-sdk';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { Horizon, rpc } from '@stellar/stellar-sdk';
-import React, { useContext, useMemo, useState } from 'react';
+import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useLocalStorageState } from '../hooks';
 import { PoolMeta } from '../hooks/types';
 
@@ -30,6 +30,14 @@ export interface NetworkUrls {
   opts?: Horizon.Server.Options;
 }
 
+export interface CustomPool {
+  poolContractId: string;
+  oracleContractId: string;
+  adminContractId: string;
+  addedBy: string;
+  addedAt: number;
+}
+
 export interface ISettingsContext {
   viewType: ViewType;
   network: Network & { horizonUrl: string };
@@ -52,6 +60,9 @@ export interface ISettingsContext {
   isV2Enabled: boolean;
   mobileOpen: boolean;
   setMobileOpen: (mobileOpen: boolean) => void;
+  customPools: CustomPool[];
+  addCustomPool: (pool: Omit<CustomPool, 'addedAt'>) => Promise<void>;
+  removeCustomPool: (poolContractId: string) => void;
 }
 
 const SettingsContext = React.createContext<ISettingsContext | undefined>(undefined);
@@ -67,6 +78,7 @@ export const SettingsProvider = ({ children = null as any }) => {
     undefined
   );
   const [networkString, setNetworkString] = useLocalStorageState('network', undefined);
+  const [customPoolsString, setCustomPoolsString] = useLocalStorageState('customPools', undefined);
 
   const [showLend, setShowLend] = useState<boolean>(true);
   const [showJoinPool, setShowJoinPool] = useState<boolean>(true);
@@ -118,6 +130,19 @@ export const SettingsProvider = ({ children = null as any }) => {
   if (mobile) viewType = ViewType.MOBILE;
   else if (compact) viewType = ViewType.COMPACT;
   else viewType = ViewType.REGULAR;
+
+  const [customPools, setCustomPools] = useState<CustomPool[]>([]);
+
+  useEffect(() => {
+    const storedPools = localStorage.getItem('customPools');
+    if (storedPools) {
+      try {
+        setCustomPools(JSON.parse(storedPools));
+      } catch (error) {
+        console.error('Failed to parse custom pools', error);
+      }
+    }
+  }, []);
 
   function handleSetNetwork(newRpcUrl: string, newHorizonUrl: string, opts?: rpc.Server.Options) {
     if (newRpcUrl === DEFAULT_RPC && newHorizonUrl === DEFAULT_HORIZON) {
@@ -200,6 +225,37 @@ export const SettingsProvider = ({ children = null as any }) => {
     );
   }
 
+  const addCustomPool = async (poolData: Omit<CustomPool, 'addedAt'>) => {
+    const existingPool = customPools.find(
+      pool => pool.poolContractId === poolData.poolContractId
+    );
+
+    if (existingPool) {
+      throw new Error('Pool with this contract ID already exists');
+    }
+
+    const newPool: CustomPool = {
+      ...poolData,
+      addedAt: Date.now()
+    };
+
+    const updatedPools = [...customPools, newPool];
+    
+    localStorage.setItem('customPools', JSON.stringify(updatedPools));
+    
+    setCustomPools(updatedPools);
+  };
+
+  const removeCustomPool = (poolContractId: string) => {
+    const updatedPools = customPools.filter(
+      pool => pool.poolContractId !== poolContractId
+    );
+
+    localStorage.setItem('customPools', JSON.stringify(updatedPools));
+    
+    setCustomPools(updatedPools);
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -224,6 +280,9 @@ export const SettingsProvider = ({ children = null as any }) => {
         isV2Enabled,
         mobileOpen,
         setMobileOpen,
+        customPools,
+        addCustomPool,
+        removeCustomPool,
       }}
     >
       {children}

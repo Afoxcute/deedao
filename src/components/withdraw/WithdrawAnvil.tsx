@@ -314,7 +314,7 @@ export const WithdrawAnvil: React.FC<WithdrawAnvilProps> = ({ poolId, assetId, i
                 )} XLM`}
               />
               <ValueChange
-                title="Your total supplied"
+                title="Your total staked"
                 curValue={`${toBalance(
                   isCollateral
                     ? poolUser?.getCollateralFloat(reserve)

@@ -253,7 +253,7 @@ export const LendAnvil: React.FC<ReserveComponentProps> = ({ poolId, assetId }) 
                 )} XLM`}
               />
               <ValueChange
-                title="Your total supplied"
+                title="Your total staked"
                 curValue={`${toBalance(poolUser?.getCollateralFloat(reserve), decimals)} ${symbol}`}
                 newValue={`${toBalance(
                   newPoolUser?.getCollateralFloat(reserve),

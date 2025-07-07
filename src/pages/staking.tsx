@@ -1,45 +1,25 @@
 import { Box, Typography } from '@mui/material';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
 import { Divider } from '../components/common/Divider';
-import { OpaqueButton } from '../components/common/OpaqueButton';
 import { Row } from '../components/common/Row';
+import { Section, SectionSize } from '../components/common/Section';
+import { StakingMarketList } from '../components/staking/StakingMarketList';
 import { useSettings } from '../contexts';
 import { useWallet } from '../contexts/wallet';
-import { usePoolMeta } from '../hooks/api';
+import { usePool, usePoolMeta, usePoolOracle } from '../hooks/api';
 import theme from '../theme';
 
 export default function StakingPage() {
   const router = useRouter();
   const { walletId } = useWallet();
   const { lastPool } = useSettings();
-  const [stakedAmount, setStakedAmount] = useState<string>('0');
-  const [stakingAPR, setStakingAPR] = useState<string>('0');
-  const [rewardsEarned, setRewardsEarned] = useState<string>('0');
-  const { data: poolMeta } = usePoolMeta(router.query.poolId as string, !!router.query.poolId);
+  const { data: poolMeta } = usePoolMeta(
+    (router.query.poolId as string | undefined) ?? lastPool?.id ?? ''
+  );
+  const { data: pool } = usePool(poolMeta);
+  const { data: poolOracle } = usePoolOracle(pool);
 
-  useEffect(() => {
-    // TODO: Fetch staking data from contract
-    if (walletId && poolMeta) {
-      // Example data - replace with actual contract calls
-      setStakedAmount('1000');
-      setStakingAPR('12.5');
-      setRewardsEarned('50');
-    }
-  }, [walletId, poolMeta]);
-
-  const handleStake = () => {
-    router.push(`/stake?poolId=${poolMeta?.id}`);
-  };
-
-  const handleUnstake = () => {
-    router.push(`/unstake?poolId=${poolMeta?.id}`);
-  };
-
-  const handleClaimRewards = async () => {
-    // TODO: Implement claim rewards functionality
-    console.log('Claiming rewards');
-  };
+  const hasData = pool && poolOracle;
 
   return (
     <Box sx={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '24px' }}>
@@ -48,68 +28,25 @@ export default function StakingPage() {
       </Row>
       <Divider />
       
-      <Row sx={{ marginTop: '24px', gap: '24px' }}>
+      {!walletId ? (
         <Box sx={{ 
-          flex: 1, 
+          textAlign: 'center', 
+          marginTop: '48px',
           backgroundColor: theme.palette.background.paper,
           padding: '24px',
           borderRadius: '8px'
         }}>
-          <Typography variant="h2">Total Staked</Typography>
-          <Typography variant="h1" sx={{ color: theme.palette.primary.main }}>
-            {stakedAmount} BLND
-          </Typography>
+          <Typography variant="h2">Connect your wallet to view staking details</Typography>
         </Box>
-        <Box sx={{ 
-          flex: 1, 
-          backgroundColor: theme.palette.background.paper,
-          padding: '24px',
-          borderRadius: '8px'
-        }}>
-          <Typography variant="h2">Staking APR</Typography>
-          <Typography variant="h1" sx={{ color: theme.palette.info.main }}>
-            {stakingAPR}%
-          </Typography>
-        </Box>
-        <Box sx={{ 
-          flex: 1, 
-          backgroundColor: theme.palette.background.paper,
-          padding: '24px',
-          borderRadius: '8px'
-        }}>
-          <Typography variant="h2">Rewards Earned</Typography>
-          <Typography variant="h1" sx={{ color: theme.palette.success.main }}>
-            {rewardsEarned} BLND
-          </Typography>
-        </Box>
-      </Row>
-
-      <Row sx={{ marginTop: '24px', gap: '16px', justifyContent: 'center' }}>
-        <OpaqueButton
-          onClick={handleStake}
-          disabled={!walletId}
-          palette={theme.palette.primary}
-          sx={{ width: '150px' }}
-        >
-          Stake
-        </OpaqueButton>
-        <OpaqueButton
-          onClick={handleUnstake}
-          disabled={!walletId || parseFloat(stakedAmount) <= 0}
-          palette={theme.palette.warning}
-          sx={{ width: '150px' }}
-        >
-          Unstake
-        </OpaqueButton>
-        <OpaqueButton
-          onClick={handleClaimRewards}
-          disabled={!walletId || parseFloat(rewardsEarned) <= 0}
-          palette={theme.palette.success}
-          sx={{ width: '150px' }}
-        >
-          Claim Rewards
-        </OpaqueButton>
-      </Row>
+      ) : (
+        <>
+          {hasData && (
+            <Section width={SectionSize.FULL} sx={{ padding: '6px', display: 'flex', flexDirection: 'column' }}>
+              <StakingMarketList poolId={poolMeta?.id ?? ''} />
+            </Section>
+          )}
+        </>
+      )}
     </Box>
   );
 }

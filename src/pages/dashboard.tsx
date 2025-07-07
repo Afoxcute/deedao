@@ -88,7 +88,7 @@ const Dashboard: NextPage = () => {
         {userPoolData && (
           <TooltipText
             tooltip={
-              'The total number of supply and borrow positions you have created in this pool out of the maximum allowed.'
+              'The total number of stake and borrow positions you have created in this pool out of the maximum allowed.'
             }
             width={'auto'}
             textColor="inherit"
@@ -135,7 +135,7 @@ const Dashboard: NextPage = () => {
             sx={{ width: '50%', padding: '12px' }}
             onClick={handleLendClick}
           >
-            Supply
+            Stake
           </ToggleButton>
           <ToggleButton
             active={!showLend}
@@ -148,7 +148,7 @@ const Dashboard: NextPage = () => {
         </Section>
       </Row>
       <Row sx={{ padding: '6px', justifyContent: 'space-between' }}>
-        <Typography variant="body1">{`Assets to ${showLend ? 'supply' : 'borrow'}`}</Typography>
+        <Typography variant="body1">{`Assets to ${showLend ? 'stake' : 'borrow'}`}</Typography>
         <Box
           sx={{
             display: 'flex',

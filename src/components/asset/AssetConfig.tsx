@@ -80,7 +80,7 @@ export const AssetConfig: React.FC<ReserveComponentProps> = ({ poolId, assetId }
                 flexDirection: 'row',
               }}
             >
-              <Typography>Supply</Typography>
+              <Typography>Stake</Typography>
               <Typography
                 color={theme.palette.lend.main}
                 sx={{
