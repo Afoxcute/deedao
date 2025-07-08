@@ -36,7 +36,8 @@ export default function StakePage() {
   const { viewType } = useSettings();
   const { connected, walletAddress, poolSubmit, txStatus, txType, isLoading } = useWallet();
 
-  const { data: poolMeta } = usePoolMeta(router.query.poolId as string);
+  const safePoolId = router.query.poolId as string;
+  const { data: poolMeta } = usePoolMeta(safePoolId, safePoolId !== undefined && safePoolId !== '');
   const { data: pool } = usePool(poolMeta);
   const { data: poolOracle } = usePoolOracle(pool);
   const assetId = router.query.assetId as string;

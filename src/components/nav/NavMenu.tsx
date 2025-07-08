@@ -61,6 +61,31 @@ export const NavMenu = () => {
               Auctions
             </MenuItem>
           </Link>
+          <Link href="/nft-staking">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              NFT Staking
+            </MenuItem>
+          </Link>
+          <Link href="/nft-vesting">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              NFT Vesting
+            </MenuItem>
+          </Link>
+          <Link href="/ai-recommendations">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              🤖 AI Advisor
+            </MenuItem>
+          </Link>
+          <Link href="/nft-ai-recommendations">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              🎨 NFT AI Advisor
+            </MenuItem>
+          </Link>
+          <Link href="/distribute-nfts">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              Distribute NFTs
+            </MenuItem>
+          </Link>
           <a href="https://core.allbridge.io/" target="_blank" rel="noreferrer">
             <MenuItem
               onClick={handleClose}
@@ -73,6 +98,11 @@ export const NavMenu = () => {
           <Link href="/settings">
             <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
               Settings
+            </MenuItem>
+          </Link>
+          <Link href="/distribute-tokens">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              Distribute Tokens
             </MenuItem>
           </Link>
           <a href="https://docs.blend.capital/" target="_blank" rel="noreferrer">
@@ -138,6 +168,36 @@ export const NavMenu = () => {
             title="Auctions"
             sx={{ width: '90%', justifyContent: 'left', marginBottom: '6px' }}
           />
+          <NavItem
+            onClick={handleClose}
+            to={{ pathname: '/nft-staking' }}
+            title="NFT Staking"
+            sx={{ width: '90%', justifyContent: 'left', marginBottom: '6px' }}
+          />
+          <NavItem
+            onClick={handleClose}
+            to={{ pathname: '/nft-vesting' }}
+            title="NFT Vesting"
+            sx={{ width: '90%', justifyContent: 'left', marginBottom: '6px' }}
+          />
+          <NavItem
+            onClick={handleClose}
+            to={{ pathname: '/ai-recommendations' }}
+            title="🤖 AI Advisor"
+            sx={{ width: '90%', justifyContent: 'left', marginBottom: '6px' }}
+          />
+          <NavItem
+            onClick={handleClose}
+            to={{ pathname: '/nft-ai-recommendations' }}
+            title="🎨 NFT AI Advisor"
+            sx={{ width: '90%', justifyContent: 'left', marginBottom: '6px' }}
+          />
+          <NavItem
+            onClick={handleClose}
+            to={{ pathname: '/distribute-nfts' }}
+            title="Distribute NFTs"
+            sx={{ width: '90%', justifyContent: 'left', marginBottom: '6px' }}
+          />
           <a href="https://core.allbridge.io/" target="_blank" rel="noreferrer">
             <MenuItem
               onClick={handleClose}
@@ -150,6 +210,11 @@ export const NavMenu = () => {
           <Link href="/settings">
             <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
               Settings
+            </MenuItem>
+          </Link>
+          <Link href="/distribute-tokens">
+            <MenuItem onClick={handleClose} sx={{ color: '#FFFFFF' }}>
+              Distribute Tokens
             </MenuItem>
           </Link>
           <a href="https://docs.blend.capital/" target="_blank" rel="noreferrer">
@@ -188,15 +253,11 @@ export const NavMenu = () => {
         }}
       >
         <Alert
-          onClose={handleClose}
-          severity="info"
-          sx={{
-            backgroundColor: theme.palette.info.opaque,
-            alignItems: 'center',
-            width: '100%',
-          }}
+          onClose={handleSnackClose}
+          severity="success"
+          sx={{ width: '100%' }}
         >
-          Wallet already received funds.
+          Connected to {lastPool?.name ?? 'pool'}
         </Alert>
       </Snackbar>
     </>

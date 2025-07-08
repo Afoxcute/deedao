@@ -55,29 +55,29 @@ const theme: Theme = createTheme({
       paper: '#1E1E1E',
     },
     primary: {
-      main: '#FF6F00',
-      opaque: '#FF6F0026',
+      main: '#4CAF50',
+      opaque: '#4CAF5026',
       contrastText: 'white',
     },
     secondary: {
-      main: '#FF9800',
-      opaque: '#FF980026',
+      main: '#66BB6A',
+      opaque: '#66BB6A26',
     },
     lend: {
-      main: '#FFA726',
-      opaque: '#FFA72626',
+      main: '#81C784',
+      opaque: '#81C78426',
     },
     borrow: {
-      main: '#FB8C00',
-      opaque: '#FB8C0026',
+      main: '#66BB6A',
+      opaque: '#66BB6A26',
     },
     backstop: {
-      main: '#E65100',
-      opaque: '#E6510026',
+      main: '#388E3C',
+      opaque: '#388E3C26',
     },
     positive: {
-      main: '#FFB74D',
-      opaque: '#FFB74D26',
+      main: '#A5D6A7',
+      opaque: '#A5D6A726',
     },
     accent: {
       main: '#424242',

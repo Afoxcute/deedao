@@ -1,6 +1,6 @@
 import { Network, Version } from '@blend-capital/blend-sdk';
 import { useMediaQuery, useTheme } from '@mui/material';
-import { Horizon, rpc } from '@stellar/stellar-sdk';
+import { Horizon, rpc, xdr } from '@stellar/stellar-sdk';
 import React, { useContext, useEffect, useMemo, useState } from 'react';
 import { useLocalStorageState } from '../hooks';
 import { PoolMeta } from '../hooks/types';
@@ -34,6 +34,29 @@ export interface CustomPool {
   poolContractId: string;
   oracleContractId: string;
   adminContractId: string;
+  poolName: string;
+  apy?: number;
+  fee?: number;
+  referralAddress?: string;
+  rewardAmount?: string;
+  claimAmount?: string;
+  additionalAdmins?: string[];
+  isValidated?: boolean;
+  addedBy: string;
+  addedAt: number;
+}
+
+export interface NFTCustomPool {
+  poolContractId: string;
+  collectionContractId: string;
+  stakingContractId: string;
+  vestingContractId: string;
+  poolName: string;
+  collectionName: string;
+  stakingApr?: number;
+  vestingDuration?: number; // in days
+  maxStakingAmount?: number;
+  isValidated?: boolean;
   addedBy: string;
   addedAt: number;
 }
@@ -61,8 +84,11 @@ export interface ISettingsContext {
   mobileOpen: boolean;
   setMobileOpen: (mobileOpen: boolean) => void;
   customPools: CustomPool[];
-  addCustomPool: (pool: Omit<CustomPool, 'addedAt'>) => Promise<void>;
+  addCustomPool: (pool: Omit<CustomPool, 'addedAt' | 'isValidated'>) => Promise<void>;
   removeCustomPool: (poolContractId: string) => void;
+  nftCustomPools: NFTCustomPool[];
+  addNFTCustomPool: (pool: Omit<NFTCustomPool, 'addedAt' | 'isValidated'>) => Promise<void>;
+  removeNFTCustomPool: (poolContractId: string) => void;
 }
 
 const SettingsContext = React.createContext<ISettingsContext | undefined>(undefined);
@@ -132,6 +158,7 @@ export const SettingsProvider = ({ children = null as any }) => {
   else viewType = ViewType.REGULAR;
 
   const [customPools, setCustomPools] = useState<CustomPool[]>([]);
+  const [nftCustomPools, setNFTCustomPools] = useState<NFTCustomPool[]>([]);
 
   useEffect(() => {
     const storedPools = localStorage.getItem('customPools');
@@ -140,6 +167,17 @@ export const SettingsProvider = ({ children = null as any }) => {
         setCustomPools(JSON.parse(storedPools));
       } catch (error) {
         console.error('Failed to parse custom pools', error);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const storedNFTPools = localStorage.getItem('nftCustomPools');
+    if (storedNFTPools) {
+      try {
+        setNFTCustomPools(JSON.parse(storedNFTPools));
+      } catch (error) {
+        console.error('Failed to parse NFT custom pools', error);
       }
     }
   }, []);
@@ -225,7 +263,7 @@ export const SettingsProvider = ({ children = null as any }) => {
     );
   }
 
-  const addCustomPool = async (poolData: Omit<CustomPool, 'addedAt'>) => {
+  const addCustomPool = async (poolData: Omit<CustomPool, 'addedAt' | 'isValidated'>) => {
     const existingPool = customPools.find(
       pool => pool.poolContractId === poolData.poolContractId
     );
@@ -234,16 +272,55 @@ export const SettingsProvider = ({ children = null as any }) => {
       throw new Error('Pool with this contract ID already exists');
     }
 
-    const newPool: CustomPool = {
-      ...poolData,
-      addedAt: Date.now()
-    };
+    // Validate pool with Blend SDK
+    try {
+      const rpcServer = getRPCServer();
+      
+      // Check if the pool contract exists
+      try {
+        await rpcServer.getContractData(poolData.poolContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid pool contract ID: Contract does not exist');
+      }
 
-    const updatedPools = [...customPools, newPool];
-    
-    localStorage.setItem('customPools', JSON.stringify(updatedPools));
-    
-    setCustomPools(updatedPools);
+      // Check if the oracle contract exists
+      try {
+        await rpcServer.getContractData(poolData.oracleContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid oracle contract ID: Contract does not exist');
+      }
+
+      // Check if the admin contract exists
+      try {
+        await rpcServer.getContractData(poolData.adminContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid admin contract ID: Contract does not exist');
+      }
+
+      // Validate additional admins if provided
+      if (poolData.additionalAdmins && poolData.additionalAdmins.length > 0) {
+        for (const admin of poolData.additionalAdmins) {
+          if (!admin.startsWith('G') || admin.length !== 56) {
+            throw new Error(`Invalid admin address: ${admin}`);
+          }
+        }
+      }
+
+      const newPool: CustomPool = {
+        ...poolData,
+        isValidated: true,
+        addedAt: Date.now()
+      };
+
+      const updatedPools = [...customPools, newPool];
+      
+      localStorage.setItem('customPools', JSON.stringify(updatedPools));
+      
+      setCustomPools(updatedPools);
+    } catch (error) {
+      console.error('Pool validation error:', error);
+      throw error;
+    }
   };
 
   const removeCustomPool = (poolContractId: string) => {
@@ -254,6 +331,74 @@ export const SettingsProvider = ({ children = null as any }) => {
     localStorage.setItem('customPools', JSON.stringify(updatedPools));
     
     setCustomPools(updatedPools);
+  };
+
+  const addNFTCustomPool = async (poolData: Omit<NFTCustomPool, 'addedAt' | 'isValidated'>) => {
+    const existingPool = nftCustomPools.find(
+      pool => pool.poolContractId === poolData.poolContractId
+    );
+
+    if (existingPool) {
+      throw new Error('NFT Pool with this contract ID already exists');
+    }
+
+    // Validate pool with Blend SDK
+    try {
+      const rpcServer = getRPCServer();
+      
+      // Check if the pool contract exists
+      try {
+        await rpcServer.getContractData(poolData.poolContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid pool contract ID: Contract does not exist');
+      }
+
+      // Check if the collection contract exists
+      try {
+        await rpcServer.getContractData(poolData.collectionContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid collection contract ID: Contract does not exist');
+      }
+
+      // Check if the staking contract exists
+      try {
+        await rpcServer.getContractData(poolData.stakingContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid staking contract ID: Contract does not exist');
+      }
+
+      // Check if the vesting contract exists
+      try {
+        await rpcServer.getContractData(poolData.vestingContractId, xdr.ScVal.scvSymbol('admin'));
+      } catch (error) {
+        throw new Error('Invalid vesting contract ID: Contract does not exist');
+      }
+
+      const newPool: NFTCustomPool = {
+        ...poolData,
+        isValidated: true,
+        addedAt: Date.now()
+      };
+
+      const updatedPools = [...nftCustomPools, newPool];
+      
+      localStorage.setItem('nftCustomPools', JSON.stringify(updatedPools));
+      
+      setNFTCustomPools(updatedPools);
+    } catch (error) {
+      console.error('NFT Pool validation error:', error);
+      throw error;
+    }
+  };
+
+  const removeNFTCustomPool = (poolContractId: string) => {
+    const updatedPools = nftCustomPools.filter(
+      pool => pool.poolContractId !== poolContractId
+    );
+
+    localStorage.setItem('nftCustomPools', JSON.stringify(updatedPools));
+    
+    setNFTCustomPools(updatedPools);
   };
 
   return (
@@ -283,6 +428,9 @@ export const SettingsProvider = ({ children = null as any }) => {
         customPools,
         addCustomPool,
         removeCustomPool,
+        nftCustomPools,
+        addNFTCustomPool,
+        removeNFTCustomPool,
       }}
     >
       {children}

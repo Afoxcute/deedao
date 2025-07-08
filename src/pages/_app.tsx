@@ -19,6 +19,12 @@ export default function MyApp(props: AppProps) {
     <>
       <Head>
         <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+        <meta name="theme-color" content="#000000" />
+        <meta name="description" content="DeeDAO - Decentralized Finance Platform" />
+        <title>DeeDAO</title>
       </Head>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider theme={theme}>

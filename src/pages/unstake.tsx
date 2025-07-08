@@ -31,7 +31,8 @@ export default function UnstakePage() {
   const { viewType } = useSettings();
   const { connected, walletAddress, txStatus, txType, isLoading } = useWallet();
 
-  const { data: poolMeta } = usePoolMeta(router.query.poolId as string);
+  const safePoolId = router.query.poolId as string;
+  const { data: poolMeta } = usePoolMeta(safePoolId, safePoolId !== undefined && safePoolId !== '');
   const { data: pool } = usePool(poolMeta);
   const { data: poolOracle } = usePoolOracle(pool);
 

@@ -1,8 +1,11 @@
 import { Version } from '@blend-capital/blend-sdk';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import CollectionsIcon from '@mui/icons-material/Collections';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import LockClockIcon from '@mui/icons-material/LockClock';
 import SettingsIcon from '@mui/icons-material/Settings';
+import ShowChartIcon from '@mui/icons-material/ShowChart';
+import SmartToyIcon from '@mui/icons-material/SmartToy';
 import StarsIcon from '@mui/icons-material/Stars';
 import StorageIcon from '@mui/icons-material/Storage';
 import { Box, Drawer, Hidden, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, useMediaQuery, useTheme } from '@mui/material';
@@ -30,9 +33,9 @@ export const SideBar = () => {
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <SectionBase sx={{ width: '100%', margin: '6px 0', display: 'flex', justifyContent: 'center' }}>
-        <Link href="https://blend.capital" passHref>
+        <Link href="/" passHref>
           <IconButton sx={{ width: '50px', height: '50px', margin: '6px' }}>
-            <Image src="/icons/blend_logo.svg" layout="fill" alt="Blend Logo" />
+            <Image src="/deedao.svg" layout="fill" alt="DeeDAO Logo" />
           </IconButton>
         </Link>
       </SectionBase>
@@ -46,6 +49,14 @@ export const SideBar = () => {
               <BarChartIcon />
             </ListItemIcon>
             <ListItemText primary="Markets" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/position-maker">
+            <ListItemIcon>
+              <ShowChartIcon />
+            </ListItemIcon>
+            <ListItemText primary="📈 Position Maker" />
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
@@ -70,6 +81,46 @@ export const SideBar = () => {
               <LockClockIcon />
             </ListItemIcon>
             <ListItemText primary="Vesting" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/nft-staking">
+            <ListItemIcon>
+              <CollectionsIcon />
+            </ListItemIcon>
+            <ListItemText primary="NFT Staking" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/nft-vesting">
+            <ListItemIcon>
+              <LockClockIcon />
+            </ListItemIcon>
+            <ListItemText primary="NFT Vesting" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/ai-recommendations">
+            <ListItemIcon>
+              <SmartToyIcon />
+            </ListItemIcon>
+            <ListItemText primary="AI Advisor" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/nft-ai-recommendations">
+            <ListItemIcon>
+              <SmartToyIcon />
+            </ListItemIcon>
+            <ListItemText primary="🎨 NFT AI Advisor" />
+          </ListItemButton>
+        </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={Link} href="/distribute-nfts">
+            <ListItemIcon>
+              <CollectionsIcon />
+            </ListItemIcon>
+            <ListItemText primary="Distribute NFTs" />
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>

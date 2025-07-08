@@ -1,5 +1,7 @@
 import DeleteIcon from '@mui/icons-material/Delete';
-import { Box, IconButton, Typography, useTheme } from '@mui/material';
+import VerifiedIcon from '@mui/icons-material/Verified';
+import WarningIcon from '@mui/icons-material/Warning';
+import { Box, Chip, IconButton, Tooltip, Typography, useTheme } from '@mui/material';
 import { Horizon, rpc } from '@stellar/stellar-sdk';
 import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
@@ -22,7 +24,9 @@ export default function SettingsPage() {
     addCustomAssetToPool,
     removeCustomAssetFromPool,
     customPools,
-    removeCustomPool
+    removeCustomPool,
+    nftCustomPools,
+    removeNFTCustomPool
   } = useSettings();
   const theme = useTheme();
   const router = useRouter();
@@ -203,6 +207,10 @@ export default function SettingsPage() {
     router.push('/settings/add-pool');
   };
 
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString();
+  };
+
   if (!connected) {
     return (
       <Box sx={{ 
@@ -221,34 +229,51 @@ export default function SettingsPage() {
     <Row>
       <Section
         width={SectionSize.FULL}
-        sx={{ 
+          sx={{
           padding: '24px', 
           display: 'flex', 
-          flexDirection: 'column',
+            flexDirection: 'column',
           gap: '24px'
         }}
       >
         <Typography variant="h1">Settings</Typography>
 
-        {/* Custom Pools Section */}
+        {/* Quick Actions Section */}
         <Box>
-          <Row sx={{ 
-            justifyContent: 'space-between', 
-            alignItems: 'center', 
-            marginBottom: '16px' 
-          }}>
-            <Typography variant="h2">Custom Pools</Typography>
-            <OpaqueButton 
+          <Typography variant="h2" sx={{ marginBottom: '16px' }}>
+            Quick Actions
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <OpaqueButton
+              onClick={() => router.push('/distribute-tokens')}
+              palette={theme.palette.primary}
+            >
+              Distribute Tokens
+              </OpaqueButton>
+            <OpaqueButton
               onClick={handleAddCustomPool}
               palette={theme.palette.primary}
             >
               Add Custom Pool
             </OpaqueButton>
-          </Row>
+            <OpaqueButton
+              onClick={() => router.push('/settings/add-nft-pool')}
+              palette={theme.palette.primary}
+            >
+              Add NFT Pool
+            </OpaqueButton>
+          </Box>
+        </Box>
+
+        {/* Custom Pools Section */}
+        <Box>
+          <Typography variant="h2" sx={{ marginBottom: '16px' }}>
+            Custom Pools
+          </Typography>
 
           {customPools.length === 0 ? (
             <Box 
-              sx={{ 
+              sx={{
                 backgroundColor: theme.palette.background.paper,
                 padding: '16px',
                 borderRadius: '8px',
@@ -264,42 +289,281 @@ export default function SettingsPage() {
               {customPools.map((pool, index) => (
                 <Box
                   key={index}
+          sx={{
+                    backgroundColor: theme.palette.background.paper,
+                    padding: '16px',
+                    borderRadius: '8px',
+                    marginBottom: '12px',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}>
+                        <Typography variant="h3">{pool.poolName || 'Unnamed Pool'}</Typography>
+                        {pool.isValidated ? (
+                          <Tooltip title="Pool validated">
+                            <VerifiedIcon color="success" fontSize="small" />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="Pool not validated">
+                            <WarningIcon color="warning" fontSize="small" />
+                          </Tooltip>
+                        )}
+                      </Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Added on {formatDate(pool.addedAt)}
+                      </Typography>
+                    </Box>
+                    <IconButton 
+                      onClick={() => removeCustomPool(pool.poolContractId)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                      Pool Contract ID
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      {pool.poolContractId}
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                      Oracle Contract ID
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      {pool.oracleContractId}
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                      Admin Contract ID
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      {pool.adminContractId}
+                    </Typography>
+                  </Box>
+
+                  {/* Display additional pool information if available */}
+                  {(pool.apy !== undefined || 
+                    pool.fee !== undefined || 
+                    pool.referralAddress || 
+                    pool.rewardAmount || 
+                    pool.claimAmount || 
+                    (pool.additionalAdmins && pool.additionalAdmins.length > 0)) && (
+                    <Box sx={{ 
+                      mt: 2, 
+                      pt: 2, 
+                      borderTop: `1px solid ${theme.palette.divider}` 
+                    }}>
+                      <Typography variant="h4" sx={{ mb: 1 }}>Additional Settings</Typography>
+                      
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {pool.apy !== undefined && (
+                          <Chip 
+                            label={`APY: ${pool.apy}%`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                        
+                        {pool.fee !== undefined && (
+                          <Chip 
+                            label={`Fee: ${pool.fee}%`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                        
+                        {pool.rewardAmount && (
+                          <Chip 
+                            label={`Reward: ${pool.rewardAmount}`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                        
+                        {pool.claimAmount && (
+                          <Chip 
+                            label={`Claim: ${pool.claimAmount}`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                      </Box>
+                      
+                      {pool.referralAddress && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            Referral Address:
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                            {pool.referralAddress}
+              </Typography>
+                        </Box>
+                      )}
+                      
+                      {pool.additionalAdmins && pool.additionalAdmins.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                            Additional Admins:
+                          </Typography>
+                          {pool.additionalAdmins.map((admin, idx) => (
+                            <Typography 
+                              key={idx} 
+                              variant="caption" 
+                              color="text.secondary" 
+                              sx={{ 
+                                display: 'block',
+                                wordBreak: 'break-all' 
+                              }}
+                            >
+                              {admin}
+                            </Typography>
+                          ))}
+                        </Box>
+                      )}
+                    </Box>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
+        </Box>
+
+        {/* NFT Custom Pools Section */}
+        <Box>
+          <Typography variant="h2" sx={{ marginBottom: '16px' }}>
+            NFT Custom Pools
+          </Typography>
+
+          {nftCustomPools.length === 0 ? (
+            <Box 
+              sx={{
+                backgroundColor: theme.palette.background.paper,
+                padding: '16px',
+                borderRadius: '8px',
+                textAlign: 'center'
+              }}
+            >
+              <Typography variant="body1">
+                No NFT custom pools added yet
+              </Typography>
+            </Box>
+          ) : (
+            <Box>
+              {nftCustomPools.map((pool, index) => (
+                <Box
+                  key={index}
                   sx={{
                     backgroundColor: theme.palette.background.paper,
                     padding: '16px',
                     borderRadius: '8px',
                     marginBottom: '12px',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
                   }}
                 >
-                  <Box>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px', mb: 1 }}>
+                        <Typography variant="h3">{pool.poolName || 'Unnamed NFT Pool'}</Typography>
+                        {pool.isValidated ? (
+                          <Tooltip title="NFT Pool validated">
+                            <VerifiedIcon color="success" fontSize="small" />
+                          </Tooltip>
+                        ) : (
+                          <Tooltip title="NFT Pool not validated">
+                            <WarningIcon color="warning" fontSize="small" />
+                          </Tooltip>
+                        )}
+                      </Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Collection: {pool.collectionName} • Added on {formatDate(pool.addedAt)}
+                      </Typography>
+                    </Box>
+                    <IconButton 
+                      onClick={() => removeNFTCustomPool(pool.poolContractId)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </Box>
+
+                  <Box sx={{ mt: 2 }}>
                     <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
                       Pool Contract ID
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
                       {pool.poolContractId}
                     </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold', marginTop: '8px' }}>
-                      Oracle Contract ID
+                    
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                      Collection Contract ID
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {pool.oracleContractId}
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      {pool.collectionContractId}
                     </Typography>
-                    <Typography variant="body1" sx={{ fontWeight: 'bold', marginTop: '8px' }}>
-                      Admin Contract ID
+                    
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                      Staking Contract ID
                     </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {pool.adminContractId}
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      {pool.stakingContractId}
+                    </Typography>
+                    
+                    <Typography variant="body1" sx={{ fontWeight: 'bold', mt: 1 }}>
+                      Vesting Contract ID
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
+                      {pool.vestingContractId}
                     </Typography>
                   </Box>
-                  <IconButton 
-                    onClick={() => removeCustomPool(pool.poolContractId)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+
+                  {/* Display additional NFT pool information if available */}
+                  {(pool.stakingApr !== undefined || 
+                    pool.vestingDuration !== undefined || 
+                    pool.maxStakingAmount !== undefined) && (
+                    <Box sx={{ 
+                      mt: 2, 
+                      pt: 2, 
+                      borderTop: `1px solid ${theme.palette.divider}` 
+                    }}>
+                      <Typography variant="h4" sx={{ mb: 1 }}>NFT Settings</Typography>
+                      
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {pool.stakingApr !== undefined && (
+                          <Chip 
+                            label={`Staking APR: ${(pool.stakingApr * 100).toFixed(2)}%`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                        
+                        {pool.vestingDuration !== undefined && (
+                          <Chip 
+                            label={`Vesting: ${pool.vestingDuration} days`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                        
+                        {pool.maxStakingAmount !== undefined && (
+                          <Chip 
+                            label={`Max Staking: ${pool.maxStakingAmount} NFTs`} 
+                            size="small" 
+                            color="primary" 
+                            variant="outlined" 
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  )}
                 </Box>
               ))}
             </Box>
